@@ -37,6 +37,7 @@ func main() {
 	r.POST("/create", Insert)
 	r.GET("/books", Gets)
 	r.GET("/book/:id", GetById)
+	r.DELETE("/book/:id", Delete)
 
 	r.Run()
 }
@@ -99,4 +100,23 @@ func GetById(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, getbook)
+}
+
+func Delete(c *gin.Context) {
+	db, err := sql.Open("mysql", "root:password@(localhost:3306)/local?parseTime=true")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	delete, err := db.Prepare("DELETE FROM book_go WHERE id = ?")
+	if err != nil {
+		log.Fatal(err)
+	}
+	delete.Exec(id)
 }
