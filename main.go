@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -33,13 +34,14 @@ type Book struct { // DB
 
 func main() {
 	r := gin.Default()
-	r.POST("/create", insert)
-	r.GET("/books", gets)
+	r.POST("/create", Insert)
+	r.GET("/books", Gets)
+	r.GET("/book/:id", GetById)
 
 	r.Run()
 }
 
-func insert(c *gin.Context) {
+func Insert(c *gin.Context) {
 	db, err := sql.Open("mysql", "root:password@(localhost:3306)/local?parseTime=true")
 	if err != nil {
 		log.Fatal(err)
@@ -56,7 +58,7 @@ func insert(c *gin.Context) {
 	insert.Exec(book.Title, book.SubTitle, book.Author, book.Publisher, book.Page, book.Description)
 }
 
-func gets(c *gin.Context) {
+func Gets(c *gin.Context) {
 	db, err := sql.Open("mysql", "root:password@(localhost:3306)/local?parseTime=true")
 	if err != nil {
 		log.Fatal(err)
@@ -77,4 +79,24 @@ func gets(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, resultBook)
+}
+
+func GetById(c *gin.Context) {
+	db, err := sql.Open("mysql", "root:password@(localhost:3306)/local?parseTime=true")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	var getbook Book
+	if err = db.QueryRow("SELECT * FROM book_go where id = ?", id).Scan(&getbook.Id, &getbook.Title, &getbook.SubTitle, &getbook.Author, &getbook.Publisher, &getbook.Page, &getbook.Description, &getbook.CreatedAt, &getbook.UpdatedAt); err != nil {
+		log.Fatal(err)
+	}
+
+	c.JSON(http.StatusOK, getbook)
 }
