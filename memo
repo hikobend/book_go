@@ -1,0 +1,11 @@
+CREATE TABLE `book_go` (
+	`id` int  AUTO_INCREMENT PRIMARY KEY,
+	`title` text not null,
+	`sub_title` text,
+	`author` text not null,
+	`publisher` text,
+	`page` int not null,
+	`description` text,
+	`created_at` DATETIME DEFAULT  CURRENT_TIMESTAMP,
+	`updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
