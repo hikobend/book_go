@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -33,6 +34,7 @@ type Book struct { // DB
 func main() {
 	r := gin.Default()
 	r.POST("/create", insert)
+	r.GET("/books", gets)
 
 	r.Run()
 }
@@ -52,4 +54,27 @@ func insert(c *gin.Context) {
 		log.Fatal(err)
 	}
 	insert.Exec(book.Title, book.SubTitle, book.Author, book.Publisher, book.Page, book.Description)
+}
+
+func gets(c *gin.Context) {
+	db, err := sql.Open("mysql", "root:password@(localhost:3306)/local?parseTime=true")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	rows, err := db.Query("select id, title, sub_title, author, publisher, page, description, created_at, updated_at from book_go")
+	if err != nil {
+		log.Fatal(err)
+	}
+	var resultBook []Book
+	for rows.Next() {
+		book := Book{}
+		if err := rows.Scan(&book.Id, &book.Title, &book.SubTitle, &book.Author, &book.Publisher, &book.Page, &book.Description, &book.CreatedAt, &book.UpdatedAt); err != nil {
+			log.Fatal(err)
+		}
+		resultBook = append(resultBook, book)
+	}
+
+	c.JSON(http.StatusOK, resultBook)
 }
